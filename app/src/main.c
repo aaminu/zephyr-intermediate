@@ -1,124 +1,141 @@
-/*
- * Lecture 3 - Homework Starter Code
- *
- * GOAL: Convert a polling loop to an event-driven workqueue architecture.
- *
- * The starter code works but is INEFFICIENT.
- * polling_thread wakes every 10ms to check a flag.
- * sensor_sim fires every 100ms - that's 10 wasted wake-ups per event.
- *
- *
- * ================================================================
- * TASKS
- * ================================================================
- *
- * TASK 1 (starter - already works, just run it):
- *   Run the starter. Count wake-ups vs real events in the log.
- *   Expected: ~10 wake-ups per sensor event. Confirm this.
- *
- * TASK 2 (implement):
- *   Replace polling_thread with a k_work handler.
- *   sensor_sim should call k_work_submit() instead of setting a flag.
- *   The handler should do what polling_thread currently does.
- *
- *   Steps:
- *   - Define a work item with K_WORK_DEFINE
- *   - Write the handler function
- *   - In sensor_sim: call k_work_submit() (remove k_sem_give + flag)
- *   - Remove the polling_thread entirely
- *
- * TASK 3 (verify):
- *   Add k_uptime_get_32() to your handler's LOG_INF.
- *   Confirm handler runs only when sensor_sim fires (every ~100ms).
- *   No unnecessary wake-ups.
- *
- * BONUS (debounce):
- *   Change sensor_sim to fire 5 events within 20ms (not 1 per 100ms).
- *   Use k_work_reschedule with 30ms delay so only ONE handler
- *   call occurs after the burst - not 5.
- *   Log the reschedule timestamps to confirm the burst collapses.
- *
- * ================================================================
- */
-
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <stdbool.h>
+#include <zephyr/zbus/zbus.h>
 
-LOG_MODULE_REGISTER(homework, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(l4_homework, LOG_LEVEL_DBG);
 
-#define STACK_SIZE    1024
-#define SENSOR_MS     100    /* sensor fires every 100ms */
-#define POLL_MS       10     /* polling consumer checks every 10ms */
-#define EVENT_COUNT   10     /* total sensor events to produce */
+#define STACK_SIZE       2048
+#define SENSOR_PERIOD_MS  100
 
-/* Statistics */
-static int total_events;
-static int total_processed;
-
-
-static void sensor_handler(struct k_work *work)
+/*ChannelMessage - Shared aka No Ownership*/
+struct sensor_data
 {
-    ARG_UNUSED(work);
-    total_processed++;
-    LOG_INF("[HANDLER] processed event %d  tick=%u", 
-            total_processed, k_uptime_get_32());
+    int32_t flow_l_s;
+    int32_t temperature_c;
+    uint32_t timestamp_ms;
+    uint8_t seq;
+};
+
+/* Proto */
+static void display_listener_cb(const struct zbus_channel *chan);
+
+/* Observers */
+ZBUS_LISTENER_DEFINE(display_listener, display_listener_cb); // Listerner
+ZBUS_SUBSCRIBER_DEFINE(logger_sub, 4); // Observer
+
+/* Channel */
+
+ZBUS_CHAN_DEFINE(sensor_chan, 
+                 struct sensor_data,
+                 NULL, 
+                 NULL,
+                 ZBUS_OBSERVERS(display_listener, logger_sub),
+                 ZBUS_MSG_INIT(.flow_l_s = 0,
+                               .temperature_c = 0,
+                               .timestamp_ms = 0,
+                               .seq = 0));
+
+
+/*Listener-synchronous*/
+
+static void display_listener_cb(const struct zbus_channel *chan)
+{
+    const struct sensor_data *msg =
+        (const struct sensor_data *)zbus_chan_const_msg(chan);
+
+    LOG_INF("[DISPLAY-LIS] thread=%s seq=%u flow=%d l/s temp=%d C",
+            k_thread_name_get(k_current_get()),
+            msg->seq,
+            msg->flow_l_s,
+            msg->temperature_c);
 }
-K_WORK_DEFINE(sensor_work, sensor_handler);
-// K_WORK_DELAYABLE_DEFINE(debounce_work, sensor_handler);
 
-/* ------------------------------------------------------------------ */
-/*  sensor_sim - fires EVENT_COUNT events, 100ms apart               */
-/* ------------------------------------------------------------------ */
 
-static void sensor_sim_fn(void *p1, void *p2, void *p3)
+/*  Publisher */
+static void sensor_thread_fn(void *p1, void *p2, void *p3)
 {
-    for (int i = 0; i < EVENT_COUNT; i++) {
-        k_msleep(SENSOR_MS);
+    ARG_UNUSED(p1); ARG_UNUSED(p2); ARG_UNUSED(p3);
 
-        total_events++;
-        LOG_INF("[SENSOR] event %d  tick=%u", i+1, k_uptime_get_32());
+    k_thread_name_set(k_current_get(), "sensor");
+    int i = 0;
 
-    
-        int ret = k_work_submit(&sensor_work);
-        if (ret < 0) 
+    while (true)
+    {
+        i++;
+        struct sensor_data data = {
+            .flow_l_s = 5 + (i * 47),
+            .temperature_c = 24000 + (i * 350),
+            .timestamp_ms = k_uptime_get_32(),
+            .seq = (uint8_t)i,
+        };
+
+        LOG_INF("[SENSOR] publish seq=%u",
+                data.seq);
+
+        int ret = zbus_chan_pub(&sensor_chan, &data, K_MSEC(100));
+        if (ret != 0) 
         {
-            LOG_ERR("submit failed: %d", ret);
+            LOG_WRN("[SENSOR] publish failed ret=%d", ret);
         }
 
-        /*
-         * BONUS: Replace the single k_msleep(SENSOR_MS) above with
-         * a burst of 5 rapid events, then use k_work_reschedule in
-         * the handler to collapse them to one execution.
-         */
+        k_msleep(SENSOR_PERIOD_MS);
     }
-
-    LOG_INF("[SENSOR] all events produced");
 }
-K_THREAD_DEFINE(sensor_thread,  STACK_SIZE, sensor_sim_fn, NULL, NULL, NULL, 5, 0, 0);
 
-/* ================================================================
- * TASK 2 PLACEHOLDER - implement your solution here
- *
- * Uncomment and fill in:
- *
- * BONUS PLACEHOLDER - for debounce:
- *
- * K_WORK_DELAYABLE_DEFINE(debounce_work, sensor_handler);
- * In sensor_sim: k_work_reschedule(&debounce_work, K_MSEC(30));
- * ================================================================ */
 
+/*Message subscriber - logger*/
+static void logger_thread_fn(void *p1, void *p2, void *p3)
+{
+    ARG_UNUSED(p1); ARG_UNUSED(p2); ARG_UNUSED(p3);
+
+    k_thread_name_set(k_current_get(), "logger");
+
+    const struct zbus_channel *chan;
+
+    while (true)
+    {
+        int ret = zbus_sub_wait(&logger_sub, &chan, K_FOREVER);
+        if (ret != 0) 
+        {
+            LOG_ERR("[LOGGER-SUB] Error Out");
+            continue;
+        }
+
+        struct sensor_data msg;
+        ret = zbus_chan_read(chan, &msg, K_MSEC(100));
+        if (ret != 0)
+        {
+            LOG_WRN("[LOGGER-SUB] read failed ret=%d", ret);
+            continue;
+        }
+
+        LOG_INF("[LOGGER-MSG] thread=%s seq=%u flow=%d l/s temp=%d C latency=%ums",
+                k_thread_name_get(k_current_get()),
+                msg.seq,
+                msg.flow_l_s,
+                msg.temperature_c,
+                k_uptime_get_32() - msg.timestamp_ms);
+
+        k_msleep(350);
+        
+    }
+}
+
+
+/*Threads*/
+
+K_THREAD_DEFINE(sensor_thread, STACK_SIZE, sensor_thread_fn,
+                NULL, NULL, NULL, 5, 0, 0);
+
+K_THREAD_DEFINE(logger_thread, STACK_SIZE, logger_thread_fn,
+                NULL, NULL, NULL, 6, 0, 0);
+
+/* Main */
 int main(void)
 {
-    // LOG_INF("=== L3 Homework: Polling to Workqueue ===");
-    // LOG_INF("Starter: polling every %dms, sensor fires every %dms",
-    //         POLL_MS, SENSOR_MS);
-    // LOG_INF("Expected wasted wakeups: ~%d per event",
-    //         (SENSOR_MS / POLL_MS) - 1);
-    // LOG_INF("Run this, count wakeups, then convert to workqueue.");
-
-    /* Wait long enough for all events to complete */
-    k_msleep((EVENT_COUNT + 2) * SENSOR_MS + 500);
+    LOG_INF("sensor publishes every %dms", SENSOR_PERIOD_MS);
+    LOG_INF("display listener runs in publisher context");
+    LOG_INF("logger uses a regular subscriber");
 
     return 0;
 }
