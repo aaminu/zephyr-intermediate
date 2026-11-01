@@ -17,11 +17,13 @@ static struct k_thread parser_thread;
 static void parser_entry(void *attack_index, void *p2, void *p3)
 {
 	/* On this thread's stack, so the parser can always access them. */
-	char packets[3][32];
+	char packets[5][32];
 
 	strcpy(packets[0], "get=0");
-	snprintf(packets[1], sizeof(packets[1]), "get=%ld", (long)attack_index);
-	snprintf(packets[2], sizeof(packets[2]), "get=%ld", (long)attack_index + 1);
+	strcpy(packets[1], "get=1");
+	strcpy(packets[2], "get=2");
+	snprintf(packets[3], sizeof(packets[1]), "get=%ld", (long)attack_index);
+	snprintf(packets[4], sizeof(packets[2]), "get=%ld", (long)attack_index + 1);
 
 	for (int i = 0; i < ARRAY_SIZE(packets); i++) {
 		printk("parser: received '%s'\n", packets[i]);
@@ -38,6 +40,6 @@ int main(void)
 
 	k_thread_create(&parser_thread, parser_stack, PARSER_STACK_SIZE,
 			parser_entry, (void *)attack_index, NULL, NULL,
-			5, 0, K_NO_WAIT);
+			5, K_USER, K_NO_WAIT);
 	return 0;
 }
