@@ -72,10 +72,10 @@ static void sensor_thread_fn(void *p1, void *p2, void *p3)
         LOG_INF("[SENSOR] publish seq=%u",
                 data.seq);
 
-        int ret = zbus_chan_pub(&sensor_chan, &data, K_MSEC(100));
+        int ret = zbus_chan_pub(&sensor_chan, &data, K_NO_WAIT);
         if (ret != 0) 
         {
-            LOG_WRN("[SENSOR] publish failed ret=%d", ret);
+            LOG_WRN("[SENSOR] publish failed seq=%u ret=%d", data.seq, ret);
         }
 
         k_msleep(SENSOR_PERIOD_MS);
