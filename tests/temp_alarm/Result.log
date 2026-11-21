@@ -1,20 +1,198 @@
-INFO    - Using Ninja..
-INFO    - Zephyr version: v4.4.0
-INFO    - Using 'zephyr/gnu' toolchain variant.
-INFO    - Building initial testsuite list...
-INFO    - Built testsuite list in 0.00 seconds
-INFO    - Writing JSON report /home/aaminu/Desktop/iomico/zephyr-intermediate/twister-out/testplan.json
-INFO    - JOBS: 8
-INFO    - Adding tasks to the queue...
-INFO    - Added initial list of jobs to queue
-INFO    - Total complete:    1/   2  50%  built (not run):    0, filtered:    0, faiINFO    - Total complete:    2/   2  100%  built (not run):    0, filtered:    0, failed:    0, error:    0
-INFO    - 2 test scenarios (2 configurations) selected, 0 configurations filtered (0 by static filter, 0 at runtime).
-INFO    - 2 of 2 executed test configurations passed (100.00%), 0 built (not run), 0 failed, 0 errored, with no warnings in 82.66 seconds.
-INFO    - 2 of 2 executed test cases passed (100.00%) on 1 out of total 1473 platforms (0.07%).
-INFO    - 24 selected test cases not executed: 24 skipped.
-INFO    - 2 test configurations executed on platforms, 0 test configurations were only built.
-INFO    - Saving reports...
-INFO    - Writing JSON report /home/aaminu/Desktop/iomico/zephyr-intermediate/twister-out/twister.json
-INFO    - Writing xunit report /home/aaminu/Desktop/iomico/zephyr-intermediate/twister-out/twister.xml...
-INFO    - Writing xunit report /home/aaminu/Desktop/iomico/zephyr-intermediate/twister-out/twister_report.xml...
-INFO    - Run completed
+{
+    "environment":{
+        "os":"Linux",
+        "zephyr_version":"v4.4.0",
+        "toolchain":"zephyr/gnu",
+        "commit_date":"2026-04-14T14:45:49-05:00",
+        "run_date":"2026-11-21T18:40:19+00:00",
+        "options":{
+            "help":null,
+            "zephyr_base":null,
+            "verbose":1,
+            "quiet":0,
+            "command":"twister",
+            "testsuite_root":[
+                "tests/temp_alarm"
+            ],
+            "platform":[
+                "native_sim"
+            ]
+        }
+    },
+    "testsuites":[
+        {
+            "name":"homework.unit.temp_alarm",
+            "arch":"posix",
+            "platform":"native_sim/native",
+            "path":"../../zephyr-intermediate/tests/temp_alarm",
+            "run_id":"e816c231a38e64304310b5a1c599a5b6",
+            "runnable":true,
+            "retries":0,
+            "toolchain":"host/gnu",
+            "status":"passed",
+            "execution_time":"0.67",
+            "build_time":"64.56",
+            "testcases":[
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_reset.reset_clears_state",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_threshold.new_threshold_clears_alarm",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_check.above_threshold",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_check.at_threshold",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_check.below_threshold",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_get_status.status_after_init",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_invalid_input.set_threshold_out_of_range",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_invalid_input.init_threshold_out_of_range",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_invalid_input.init_without_device",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_invalid_input.get_status_null",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_sensor_errors.fail_then_recover",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_sensor_errors.channel_get_error_propagates",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.temp_alarm_sensor_errors.fetch_error_propagates",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                }
+            ]
+        },
+        {
+            "name":"homework.unit.temp_alarm.ordered",
+            "arch":"posix",
+            "platform":"native_sim/native",
+            "path":"../../zephyr-intermediate/tests/temp_alarm",
+            "run_id":"93867af8b3b1a01a501699657fe54414",
+            "runnable":true,
+            "retries":0,
+            "toolchain":"host/gnu",
+            "status":"passed",
+            "execution_time":"0.13",
+            "build_time":"64.78",
+            "testcases":[
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_reset.reset_clears_state",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_threshold.new_threshold_clears_alarm",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_check.above_threshold",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_check.at_threshold",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_check.below_threshold",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_get_status.status_after_init",
+                    "execution_time":"0.00",
+                    "status":"passed"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_invalid_input.set_threshold_out_of_range",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_invalid_input.init_threshold_out_of_range",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_invalid_input.init_without_device",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_invalid_input.get_status_null",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_sensor_errors.fail_then_recover",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_sensor_errors.channel_get_error_propagates",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                },
+                {
+                    "identifier":"homework.unit.temp_alarm.ordered.temp_alarm_sensor_errors.fetch_error_propagates",
+                    "execution_time":"0.00",
+                    "status":"skipped",
+                    "reason":"ztest skip"
+                }
+            ]
+        }
+    ]
+}
